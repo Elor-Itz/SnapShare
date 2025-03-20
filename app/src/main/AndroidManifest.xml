@@ -15,7 +15,7 @@
 
         <!-- Main activity -->
         <activity
-            android:name=".StudentsRecyclerViewActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:label="SnapShare"
             android:theme="@style/Theme.StudentsApp">

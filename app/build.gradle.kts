@@ -42,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        dataBinding = true
     }
 }
 
@@ -57,6 +58,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,6 +73,7 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview-selection:1.1.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
 
     // Import the Firebase BoM and dependencies
     implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
