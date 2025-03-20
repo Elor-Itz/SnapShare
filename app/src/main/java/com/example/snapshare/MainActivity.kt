@@ -1,48 +1,45 @@
 package com.example.snapshare
 
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import com.example.snapshare.viewmodel.AuthViewModel
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.snapshare.databinding.ActivityMainBinding
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val authViewModel: AuthViewModel by viewModels() // Using ViewModel
+    private lateinit var navController: NavController
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize ViewBinding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Observe authentication state
-        authViewModel.authState.observe(this, Observer { user ->
-            if (user != null) {
-                binding.statusTextView.text = "Logged in as: ${user.email}"
-            } else {
-                binding.statusTextView.text = "Not logged in"
-            }
-        })
+        // Initialize FirebaseAuth
+        auth = FirebaseAuth.getInstance()
 
-        // Register button click
-        binding.registerButton.setOnClickListener {
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
-            authViewModel.registerUser(email, password)
+        // Check if user is signed in
+        if (auth.currentUser == null) {
+            return
         }
 
-        // Login button click
-        binding.loginButton.setOnClickListener {
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
-            authViewModel.loginUser(email, password)
-        }
+        // Setup Navigation Component
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
 
-        // Logout button click
-        binding.logoutButton.setOnClickListener {
-            authViewModel.logoutUser()
-        }
+        // Set up Action Bar with NavController
+        setupActionBarWithNavController(navController)
+    }
+
+    // Handle Up Navigation
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }
