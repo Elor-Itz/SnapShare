@@ -5,8 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.example.snapshare.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.example.snapshare.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,28 +17,31 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize ViewBinding
+        // Set up ViewBinding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize FirebaseAuth
+        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        // Check if user is signed in
-        if (auth.currentUser == null) {
-            return
-        }
-
-        // Setup Navigation Component
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        // Set up Navigation Component
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Set up Action Bar with NavController
+        // Enable back button support
         setupActionBarWithNavController(navController)
+
+        // Check user authentication state
+        checkUserLogin()
     }
 
-    // Handle Up Navigation
+    private fun checkUserLogin() {
+        if (auth.currentUser == null) {
+            // User not logged in, navigate to LoginFragment
+            navController.navigate(R.id.loginFragment)
+        }
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
