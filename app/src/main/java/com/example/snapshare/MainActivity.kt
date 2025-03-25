@@ -32,9 +32,19 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Configure the ActionBar with NavController
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+        // Hide Toolbar for specific fragments
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.id == R.id.loginFragment || destination.id == R.id.signupFragment) {
+                supportActionBar?.hide()
+            } else {
+                supportActionBar?.show()
+            }
+        }
+
+        // Define HomeFragment as a top-level destination
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.homeFragment) // Add other top-level destinations here if needed
+        )
     }
 
     override fun onSupportNavigateUp(): Boolean {
