@@ -1,11 +1,12 @@
 package com.example.snapshare
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.example.snapshare.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -35,12 +36,14 @@ class MainActivity : AppCompatActivity() {
         // Set up BottomNavigationView with NavController
         binding.bottomNavigation.setupWithNavController(navController)
 
-        // Hide Toolbar for specific fragments
+        // Hide Toolbar and navigation bar for specific fragments
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.id == R.id.loginFragment || destination.id == R.id.signupFragment) {
                 supportActionBar?.hide()
+                binding.bottomNavigation.visibility = View.GONE // Hide BottomNavigationView
             } else {
                 supportActionBar?.show()
+                binding.bottomNavigation.visibility = View.VISIBLE // Show BottomNavigationView
             }
         }
 
