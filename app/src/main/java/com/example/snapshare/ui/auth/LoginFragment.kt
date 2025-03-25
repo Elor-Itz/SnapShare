@@ -39,9 +39,15 @@ class LoginFragment : Fragment() {
             }
         }
 
+        // Navigate to SignupFragment when the text is clicked
+        binding.tvSignUp.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
+        }
+
         return binding.root
     }
 
+    // Perform login function
     private fun loginUser(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(requireActivity()) { task ->
@@ -51,5 +57,5 @@ class LoginFragment : Fragment() {
                     Toast.makeText(requireContext(), "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
-    }
+    }    
 }
