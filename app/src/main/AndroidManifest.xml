@@ -10,7 +10,7 @@
         android:label="SnapShare"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StudentsApp"
+        android:theme="@style/Theme.SnapShare"
         tools:targetApi="31">
 
         <!-- Main activity -->
@@ -20,27 +20,12 @@
 
             android:exported="true"
             android:label="SnapShare"
-            android:theme="@style/Theme.StudentsApp">
+            android:theme="@style/Theme.SnapShare">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".NewStudentActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudentsApp" />
-
-        <activity
-            android:name=".EditStudentActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudentsApp" />
-
-        <activity
-            android:name=".StudentDetailsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudentsApp" />
 
     </application>
 
