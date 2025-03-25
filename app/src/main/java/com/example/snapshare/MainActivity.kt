@@ -32,6 +32,9 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
+        // Set up BottomNavigationView with NavController
+        binding.bottomNavigation.setupWithNavController(navController)
+
         // Hide Toolbar for specific fragments
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.id == R.id.loginFragment || destination.id == R.id.signupFragment) {
