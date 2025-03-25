@@ -30,7 +30,12 @@ class LoginFragment : Fragment() {
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 loginUser(email, password)
             } else {
-                // Show error message
+                if (email.isEmpty()) {
+                    binding.emailEditText.error = "Email is required"
+                }
+                if (password.isEmpty()) {
+                    binding.passwordEditText.error = "Password is required"
+                }
             }
         }
 
@@ -41,9 +46,9 @@ class LoginFragment : Fragment() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful) {
-                    // Navigate to home or other screen
+                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                 } else {
-                    // Handle login failure
+                    Toast.makeText(requireContext(), "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }

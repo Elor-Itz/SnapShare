@@ -10,7 +10,7 @@
         android:label="SnapShare"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.StudentsApp"
+        android:theme="@style/Theme.SnapShare"
         tools:targetApi="31">
 
         <!-- Main activity -->
@@ -20,7 +20,7 @@
 
             android:exported="true"
             android:label="SnapShare"
-            android:theme="@style/Theme.StudentsApp">
+            android:theme="@style/Theme.SnapShare">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -1,6 +1,7 @@
 package com.example.snapshare.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,9 @@ import androidx.navigation.fragment.findNavController
 import com.example.snapshare.R
 import com.example.snapshare.databinding.FragmentSignupBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 
 class SignupFragment : Fragment() {
 
@@ -37,14 +41,35 @@ class SignupFragment : Fragment() {
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Signup Successful", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
+                        Log.d("SignupFragment", "Signup successful")
+                        if (findNavController().currentDestination?.id != R.id.homeFragment) {
+                            findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
+                        }
                     }
-                    .addOnFailureListener {
-                        Toast.makeText(requireContext(), "Signup Failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                    .addOnFailureListener { exception ->
+                        when (exception) {
+                            is FirebaseAuthWeakPasswordException -> {
+                                binding.etSignupPassword.error = "Password is too weak"
+                            }
+                            is FirebaseAuthInvalidCredentialsException -> {
+                                binding.etSignupEmail.error = "Invalid email format"
+                            }
+                            is FirebaseAuthUserCollisionException -> {
+                                binding.etSignupEmail.error = "Email is already in use"
+                            }
+                            else -> {
+                                Log.e("SignupFragment", "Signup failed", exception)
+                                Toast.makeText(requireContext(), "Signup Failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
             } else {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+                if (email.isEmpty()) {
+                    binding.etSignupEmail.error = "Email is required"
+                }
+                if (password.isEmpty()) {
+                    binding.etSignupPassword.error = "Password is required"
+                }
             }
         }
 

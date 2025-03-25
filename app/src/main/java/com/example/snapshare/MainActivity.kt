@@ -4,9 +4,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.google.firebase.auth.FirebaseAuth
 import com.example.snapshare.databinding.ActivityMainBinding
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +22,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Set up Material Toolbar as ActionBar
+        setSupportActionBar(binding.toolbar) // Ensure this is called
+
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
@@ -28,18 +32,9 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Enable back button support
-        setupActionBarWithNavController(navController)
-
-        // Check user authentication state
-        checkUserLogin()
-    }
-
-    private fun checkUserLogin() {
-        if (auth.currentUser == null) {
-            // User not logged in, navigate to LoginFragment
-            navController.navigate(R.id.loginFragment)
-        }
+        // Configure the ActionBar with NavController
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        setupActionBarWithNavController(navController, appBarConfiguration)
     }
 
     override fun onSupportNavigateUp(): Boolean {
