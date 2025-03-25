@@ -27,21 +27,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".NewStudentActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudentsApp" />
-
-        <activity
-            android:name=".EditStudentActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudentsApp" />
-
-        <activity
-            android:name=".StudentDetailsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.StudentsApp" />
-
     </application>
 
 </manifest>
