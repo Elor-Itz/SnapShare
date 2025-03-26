@@ -21,12 +21,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Email Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/signupEmailLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:hint="Email"
+        app:boxStrokeColor="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/tvSignup"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -36,15 +38,17 @@
             android:id="@+id/etSignupEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"/>
+            android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Password Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/signupPasswordLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:hint="Password"
+        app:boxStrokeColor="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/signupEmailLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -54,28 +58,32 @@
             android:id="@+id/etSignupPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"/>
+            android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Sign Up Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSignup"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:text="Sign Up"
+        android:backgroundTint="?attr/colorPrimary"
+        android:textColor="?attr/colorOnPrimary"
         app:layout_constraintTop_toBottomOf="@id/signupPasswordLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:padding="16dp"/>
+        android:padding="16dp" />
 
+    <!-- Login TextView -->
     <TextView
         android:id="@+id/tvLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Already have an account? Login"
-        android:textColor="@color/teal_700"
+        android:textColor="?attr/colorSecondary"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/btnSignup"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:padding="16dp"/>
+        android:padding="16dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
