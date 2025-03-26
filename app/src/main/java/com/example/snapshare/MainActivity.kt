@@ -101,24 +101,21 @@ class MainActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         )
-   
+
         // Set up the profile picture and name
         val profileImageView = popupView.findViewById<ImageView>(R.id.profileImageView)
         val profileNameTextView = popupView.findViewById<TextView>(R.id.profileNameTextView)
         val logoutButton = popupView.findViewById<Button>(R.id.logoutButton)
- 
+
         // Set the user's profile picture and name (replace with actual user data)
         profileImageView.setImageResource(R.drawable.ic_profile_placeholder) // Replace with actual image loading logic
         profileNameTextView.text = auth.currentUser?.displayName ?: "User Name"
 
-        // Handle logout button click
+        // Handle "Logout" button click
         logoutButton.setOnClickListener {
             auth.signOut() // Log out the user
             popupWindow.dismiss() // Close the popup
             navController.navigate(R.id.loginFragment)
-//            navController.navigate(R.id.action_homeFragment_to_loginFragment) {
-//                popUpTo(R.id.homeFragment) { inclusive = true }
-//            }
         }
 
         // Show the popup anchored to the profile menu item
