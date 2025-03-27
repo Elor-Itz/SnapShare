@@ -56,7 +56,17 @@
         android:id="@+id/profileFragment"
         android:name="com.example.snapshare.ui.profile.ProfileFragment"
         android:label="Profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+        android:id="@+id/action_profileFragment_to_editProfileFragment"
+        app:destination="@id/editProfileFragment" />
+    </fragment>
+
+    <!-- Edit Profile Fragment -->
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.snapshare.ui.profile.EditProfileFragment"
+        android:label="EditProfileFragment" />
 
     <!-- Notifications Fragment -->
     <fragment
