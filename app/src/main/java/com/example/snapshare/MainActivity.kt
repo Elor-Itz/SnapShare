@@ -7,16 +7,16 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.snapshare.databinding.ActivityMainBinding
+import com.example.snapshare.data.model.User
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
+import com.example.snapshare.viewmodel.UserViewModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,10 +24,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var auth: FirebaseAuth
 
-    // Cached user data
-    private var cachedFirstName: String? = null
-    private var cachedLastName: String? = null
-    private var cachedProfilePictureUrl: String? = null
+    // Get a reference to the UserViewModel
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,11 +47,15 @@ class MainActivity : AppCompatActivity() {
         // Check if the user is already logged in
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // Fetch user data once and cache it
-            fetchAndCacheUserData(currentUser.uid)
+            // Fetch user data once through ViewModel
+            userViewModel.fetchCurrentUser()
 
-            // Navigate to HomeFragment if the user is logged in
-            navController.navigate(R.id.homeFragment)
+            // Navigate to HomeFragment and clear the back stack
+            val navOptions = androidx.navigation.NavOptions.Builder()
+                .setPopUpTo(R.id.loginFragment, true)
+                .build()
+
+            navController.navigate(R.id.homeFragment, null, navOptions)
         }
 
         // Set up BottomNavigationView with NavController
@@ -75,40 +77,14 @@ class MainActivity : AppCompatActivity() {
         profileImageView.setOnClickListener {
             showProfilePopup()
         }
-    }
 
-    // Fetch and cache user data from Firestore
-    private fun fetchAndCacheUserData(userId: String) {
-        FirebaseFirestore.getInstance().collection("users").document(userId)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    cachedFirstName = document.getString("firstName") ?: "No Name"
-                    cachedLastName = document.getString("lastName") ?: ""
-                    cachedProfilePictureUrl = document.getString("profilePictureUrl") ?: ""
-
-                    // Update the toolbar profile image
-                    updateToolbarProfileImage()
-                }
+        // Observe the current user LiveData to update the profile image in the top bar
+        userViewModel.currentUser.observe(this, { user ->
+            if (user != null) {
+                // Update the top bar profile image
+                updateToolbarProfileImage(user)
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to load user data: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    // Update the toolbar profile image
-    private fun updateToolbarProfileImage() {
-        val profileImageView = findViewById<ImageView>(R.id.topBarProfileImageView)
-
-        if (cachedProfilePictureUrl?.isNotEmpty() == true) {
-            Picasso.get()
-                .load(cachedProfilePictureUrl)
-                .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder)
-                .into(profileImageView)
-        } else {
-            profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
-        }
+        })
     }
 
     // Show profile popup
@@ -129,17 +105,28 @@ class MainActivity : AppCompatActivity() {
         val profileNameTextView = popupView.findViewById<TextView>(R.id.profileNameTextView)
         val logoutButton = popupView.findViewById<Button>(R.id.logoutButton)
 
-        // Use cached data to populate the popup
-        profileNameTextView.text = "${cachedFirstName ?: "No Name"} ${cachedLastName ?: ""}"
-        if (cachedProfilePictureUrl?.isNotEmpty() == true) {
-            Picasso.get()
-                .load(cachedProfilePictureUrl)
-                .placeholder(R.drawable.ic_profile_placeholder)
-                .error(R.drawable.ic_profile_placeholder)
-                .into(profileImageView)
-        } else {
-            profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
-        }
+        // Observe the current user LiveData from the ViewModel
+        userViewModel.currentUser.observe(this, { user ->
+            if (user != null) {
+                // Populate profile name
+                profileNameTextView.text = "${user.firstName} ${user.lastName}"
+
+                // Load profile picture with Picasso
+                if (user.profilePictureUrl?.isNotEmpty() == true) {
+                    Picasso.get()
+                        .load(user.profilePictureUrl)
+                        .placeholder(R.drawable.ic_profile_placeholder)
+                        .error(R.drawable.ic_profile_placeholder)
+                        .into(profileImageView)
+                } else {
+                    profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
+                }
+            } else {
+                // Handle the case where the user is null
+                profileNameTextView.text = "No Name"
+                profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
+            }
+        })
 
         // Handle "Logout" button click
         logoutButton.setOnClickListener {
@@ -150,5 +137,20 @@ class MainActivity : AppCompatActivity() {
 
         // Show the popup anchored to the profile menu item
         popupWindow.showAsDropDown(findViewById(R.id.topBarProfileImageView), 0, 0)
+    }
+
+    // Update the toolbar profile image
+    private fun updateToolbarProfileImage(user: User) {
+        val profileImageView = findViewById<ImageView>(R.id.topBarProfileImageView)
+
+        if (user.profilePictureUrl?.isNotEmpty() == true) {
+            Picasso.get()
+                .load(user.profilePictureUrl)
+                .placeholder(R.drawable.ic_profile_placeholder)
+                .error(R.drawable.ic_profile_placeholder)
+                .into(profileImageView)
+        } else {
+            profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
+        }
     }
 }
