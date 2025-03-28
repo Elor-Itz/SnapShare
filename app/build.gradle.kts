@@ -85,9 +85,18 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
-    // SQLite Room
+    // SQLite Room + LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
     implementation ("androidx.room:room-runtime:2.5.2")
-    kapt ("androidx.room:room-compiler:2.5.2")
     implementation ("androidx.room:room-ktx:2.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    kapt ("androidx.room:room-compiler:2.5.2")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Cloudinary + Picasso
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
+    implementation("com.squareup.picasso:picasso:2.8")
 }

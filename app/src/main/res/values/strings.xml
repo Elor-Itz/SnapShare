@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">SnapShare</string>
     <string name="add">add</string>
+    <string name="error_loading_profile">Error loading profile</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="full_name_placeholder">Full Name</string>
+    <string name="email_placeholder">Email</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="upload_image">Upload Image</string>
+    <string name="save_profile">Save Profile</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
 </resources>
