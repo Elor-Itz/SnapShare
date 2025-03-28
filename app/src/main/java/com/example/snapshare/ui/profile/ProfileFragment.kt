@@ -5,19 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.snapshare.R
 import com.example.snapshare.databinding.FragmentProfileBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.snapshare.ui.viewmodel.UserViewModel
 import com.squareup.picasso.Picasso
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
-    private lateinit var firestore: FirebaseFirestore
-    private lateinit var auth: FirebaseAuth
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,38 +29,27 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        firestore = FirebaseFirestore.getInstance()
-        auth = FirebaseAuth.getInstance()
+        // Observe LiveData from ViewModel
+        userViewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                binding.fullNameTextView.text = "${user.firstName ?: ""} ${user.lastName ?: ""}".trim()
+                binding.emailTextView.text = user.email ?: "No Email"
 
-        val user = auth.currentUser
-        user?.let {
-            loadUserProfile(it.uid)
+                val profilePictureUrl = user.profilePictureUrl ?: ""
+                if (profilePictureUrl.isNotEmpty()) {
+                    Picasso.get().load(profilePictureUrl)
+                        .placeholder(R.drawable.ic_profile_placeholder)
+                        .error(R.drawable.ic_profile_placeholder)
+                        .into(binding.profileImageView)
+                } else {
+                    binding.profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
+                }
+            }
         }
 
         binding.btnEditProfile.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
         }
-    }
-
-    // Load user profile
-    private fun loadUserProfile(userId: String) {
-        firestore.collection("users").document(userId).get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val firstName = document.getString("firstName") ?: "No Name"
-                    val lastName = document.getString("lastName") ?: ""
-                    val profilePictureUrl = document.getString("profilePictureUrl") ?: ""
-
-                    binding.fullNameTextView.text = "$firstName $lastName"
-                    binding.emailTextView.text = auth.currentUser?.email ?: "No Email"
-                    if (profilePictureUrl.isNotEmpty()) {
-                        Picasso.get().load(profilePictureUrl)
-                            .placeholder(R.drawable.ic_profile_placeholder)
-                            .error(R.drawable.ic_profile_placeholder)
-                            .into(binding.profileImageView)
-                    }
-                }
-            }
     }
 
     override fun onDestroyView() {

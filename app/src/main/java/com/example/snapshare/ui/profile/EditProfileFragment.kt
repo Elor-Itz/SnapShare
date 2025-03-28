@@ -1,38 +1,23 @@
 package com.example.snapshare.ui.profile
 
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.example.snapshare.R
 import com.example.snapshare.databinding.FragmentEditProfileBinding
-import com.example.snapshare.utils.CloudinaryUploader
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.snapshare.ui.viewmodel.UserViewModel
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.launch
 
 class EditProfileFragment : Fragment() {
 
     private var _binding: FragmentEditProfileBinding? = null
     private val binding get() = _binding!!
-    private lateinit var firestore: FirebaseFirestore
-    private lateinit var auth: FirebaseAuth
-    private lateinit var cloudinaryUploader: CloudinaryUploader
-
-
-    private val imagePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                binding.profileImageView.setImageURI(it)
-                uploadImageToCloudinaryAndSave(it)
-            } ?: Toast.makeText(requireContext(), "Failed to get image", Toast.LENGTH_SHORT).show()
-        }
+    private val userViewModel: UserViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,99 +30,69 @@ class EditProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        firestore = FirebaseFirestore.getInstance()
-        auth = FirebaseAuth.getInstance()
-        cloudinaryUploader = CloudinaryUploader(requireContext())
+        // Hide the top and bottom menus
+        hideMenus()
 
-        val user = auth.currentUser
-        user?.let {
-            loadUserProfile(it.uid)
-        }
-
-        binding.btnUploadImage.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
-        }
-
-        binding.btnSaveProfile.setOnClickListener {
-            saveUserProfile()
-        }
-    }
-
-    // Load user profile data
-    private fun loadUserProfile(userId: String) {
-        firestore.collection("users").document(userId).get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val firstName = document.getString("firstName") ?: ""
-                    val lastName = document.getString("lastName") ?: ""
-                    val profilePictureUrl = document.getString("profilePictureUrl") ?: ""
-
-                    binding.etFirstName.setText(firstName)
-                    binding.etLastName.setText(lastName)
-                    if (profilePictureUrl.isNotEmpty()) {
-                        Picasso.get().load(profilePictureUrl)
-                            .placeholder(R.drawable.ic_profile_placeholder)
-                            .error(R.drawable.ic_profile_placeholder)
-                            .into(binding.profileImageView)
-                    }
-                }
-            }
-    }
-
-    // Upload image to Cloudinary and save URL to Firestore
-    private fun uploadImageToCloudinaryAndSave(imageUri: Uri) {
-        lifecycleScope.launch {
-            val user = auth.currentUser ?: return@launch
-            try {
-                // Use CloudinaryUploader to upload the image
-                val imageUrl = cloudinaryUploader.uploadImage(imageUri)
-                if (imageUrl != null) {
-                    saveImageUrlToFirestore(user.uid, imageUrl)
+        // Observe the user data
+        userViewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                binding.etFirstName.setText(user.firstName)
+                binding.etLastName.setText(user.lastName)
+                if (!user.profilePictureUrl.isNullOrEmpty()) {
+                    Picasso.get().load(user.profilePictureUrl)
+                        .placeholder(R.drawable.ic_profile_placeholder)
+                        .error(R.drawable.ic_profile_placeholder)
+                        .into(binding.profileImageView)
                 } else {
-                    Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
+                    binding.profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
                 }
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
-    }
 
-    // Save image URL
-    private fun saveImageUrlToFirestore(userId: String, imageUrl: String) {
-        firestore.collection("users").document(userId)
-            .update("profilePictureUrl", imageUrl)
-            .addOnSuccessListener {
-                Picasso.get().load(imageUrl).into(binding.profileImageView)
-                Toast.makeText(requireContext(), "Profile picture updated!", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to update profile image", Toast.LENGTH_SHORT).show()
-            }
-    }
+        // Save profile changes
+        binding.btnSaveProfile.setOnClickListener {
+            val firstName = binding.etFirstName.text.toString().trim()
+            val lastName = binding.etLastName.text.toString().trim()
 
-    // Save user profile
-    private fun saveUserProfile() {
-        val user = auth.currentUser ?: return
-        val firstName = binding.etFirstName.text.toString()
-        val lastName = binding.etLastName.text.toString()
+            if (firstName.isEmpty() || lastName.isEmpty()) {
+                Toast.makeText(requireContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-        firestore.collection("users").document(user.uid)
-            .update(
-                mapOf(
-                    "firstName" to firstName,
-                    "lastName" to lastName
-                )
-            )
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Profile updated!", Toast.LENGTH_SHORT).show()
+            userViewModel.updateUserProfile(firstName, lastName).observe(viewLifecycleOwner) { success ->
+                if (success) {
+                    Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_editProfileFragment_to_profileFragment)
+                } else {
+                    Toast.makeText(requireContext(), "Failed to update profile.", Toast.LENGTH_SHORT).show()
+                }
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to update profile", Toast.LENGTH_SHORT).show()
-            }
+        }
+
+        // Navigate back to ProfileFragment
+        binding.btnBack.setOnClickListener {
+            findNavController().navigate(R.id.action_editProfileFragment_to_profileFragment)
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore the top and bottom menus
+        showMenus()
         _binding = null
+    }
+
+    private fun hideMenus() {
+        // Hide the Toolbar
+        requireActivity().findViewById<View>(R.id.toolbar)?.visibility = View.GONE
+        // Hide the BottomNavigationView
+        requireActivity().findViewById<View>(R.id.bottomNavigation)?.visibility = View.GONE
+    }
+
+    private fun showMenus() {
+        // Show the Toolbar
+        requireActivity().findViewById<View>(R.id.toolbar)?.visibility = View.VISIBLE
+        // Show the BottomNavigationView
+        requireActivity().findViewById<View>(R.id.bottomNavigation)?.visibility = View.VISIBLE
     }
 }

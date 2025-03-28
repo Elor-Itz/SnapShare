@@ -2,10 +2,7 @@ package com.example.snapshare.ui.viewmodel
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.snapshare.data.local.AppDatabase
 import com.example.snapshare.data.model.User
 import com.google.firebase.auth.FirebaseAuth
@@ -25,43 +22,38 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     val currentUser: LiveData<User?> get() = _currentUser
 
     init {
-        // Automatically fetch the current user when the ViewModel is initialized
         fetchCurrentUser()
     }
 
-    // Fetch the current user's data from Firestore and/or Room
+    // Load current user
     fun fetchCurrentUser() {
-        val currentUserId = auth.currentUser?.uid
-        if (currentUserId != null) {
-            viewModelScope.launch {
-                try {
-                    // First, check if the user exists in the local database
-                    var user = withContext(Dispatchers.IO) {
-                        userDao.getUserById(currentUserId)
-                    }
+        val userId = auth.currentUser?.uid ?: return
 
-                    if (user == null) {
-                        // If not found locally, fetch from Firestore
-                        user = fetchUserFromFirestore(currentUserId)
-                        if (user != null) {
-                            // Save the fetched user to the local database
-                            saveUserToLocalDatabase(user)
-                        }
-                    }
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val firstName = document.getString("firstName") ?: "No Name"
+                    val lastName = document.getString("lastName") ?: ""
+                    val profilePictureUrl = document.getString("profilePictureUrl") ?: ""
+                    val email = auth.currentUser?.email ?: "No Email"
 
-                    _currentUser.postValue(user)
-                } catch (e: Exception) {
-                    Log.e("UserViewModel", "Error fetching current user: ${e.message}")
-                    _currentUser.postValue(null)
+                    val user = User(
+                        uid = userId,
+                        firstName = firstName,
+                        lastName = lastName,
+                        profilePictureUrl = profilePictureUrl,
+                        email = email
+                    )
+
+                    _currentUser.postValue(user) // Update LiveData
                 }
             }
-        } else {
-            Log.d("UserViewModel", "No user is currently logged in")
-            _currentUser.postValue(null)
-        }
+            .addOnFailureListener {
+                _currentUser.postValue(null) // Handle failure case
+            }
     }
 
-    // Fetch user data from Firestore
+    // Fetch user from Firestore
     private suspend fun fetchUserFromFirestore(userId: String): User? {
         return try {
             val document = firestore.collection("users").document(userId).get().await()
@@ -76,7 +68,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Save the user to the local Room database
+    // Save user to local database
     private fun saveUserToLocalDatabase(user: User) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -86,5 +78,44 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("UserViewModel", "Error saving user to local database: ${e.message}")
             }
         }
+    }
+
+    // Update user profile
+    fun updateUserProfile(firstName: String, lastName: String): LiveData<Boolean> {
+        val result = MutableLiveData<Boolean>()
+        val currentUserId = auth.currentUser?.uid
+
+        if (currentUserId == null) {
+            result.value = false
+            return result
+        }
+
+        viewModelScope.launch {
+            try {
+                val updates = mapOf(
+                    "firstName" to firstName,
+                    "lastName" to lastName
+                )
+
+                // Update Firestore
+                firestore.collection("users").document(currentUserId).update(updates).await()
+
+                // Update Local Database
+                withContext(Dispatchers.IO) {
+                    val updatedUser = _currentUser.value?.copy(firstName = firstName, lastName = lastName)
+                    if (updatedUser != null) {
+                        userDao.insertUser(updatedUser)
+                        _currentUser.postValue(updatedUser)
+                    }
+                }
+
+                result.postValue(true)
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Error updating user profile: ${e.message}")
+                result.postValue(false)
+            }
+        }
+
+        return result
     }
 }
