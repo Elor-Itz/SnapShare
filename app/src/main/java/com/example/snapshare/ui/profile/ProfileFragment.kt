@@ -9,7 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.snapshare.R
 import com.example.snapshare.databinding.FragmentProfileBinding
-import com.example.snapshare.ui.viewmodel.UserViewModel
+import com.example.snapshare.viewmodel.UserViewModel
 import com.squareup.picasso.Picasso
 
 class ProfileFragment : Fragment() {

@@ -1,4 +1,4 @@
-package com.example.snapshare.ui.viewmodel
+package com.example.snapshare.viewmodel
 
 import android.app.Application
 import android.util.Log
