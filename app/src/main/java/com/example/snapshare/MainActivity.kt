@@ -1,14 +1,13 @@
 package com.example.snapshare
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -16,12 +15,19 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.snapshare.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.squareup.picasso.Picasso
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private lateinit var auth: FirebaseAuth
+
+    // Cached user data
+    private var cachedFirstName: String? = null
+    private var cachedLastName: String? = null
+    private var cachedProfilePictureUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +37,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Set up Material Toolbar as ActionBar
-        setSupportActionBar(binding.toolbar) // Ensure this is called
+        setSupportActionBar(binding.toolbar)
 
         // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()        
+        auth = FirebaseAuth.getInstance()
 
         // Set up Navigation Component
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -43,6 +49,9 @@ class MainActivity : AppCompatActivity() {
         // Check if the user is already logged in
         val currentUser = auth.currentUser
         if (currentUser != null) {
+            // Fetch user data once and cache it
+            fetchAndCacheUserData(currentUser.uid)
+
             // Navigate to HomeFragment if the user is logged in
             navController.navigate(R.id.homeFragment)
         }
@@ -61,31 +70,44 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Define HomeFragment as a top-level destination
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.homeFragment) // Add other top-level destinations here if needed
-        )
+        // Add click listener to the profile image in the toolbar
+        val profileImageView = findViewById<ImageView>(R.id.topBarProfileImageView)
+        profileImageView.setOnClickListener {
+            showProfilePopup()
+        }
     }
 
-    // Navigate up
-    override fun onSupportNavigateUp(): Boolean {
-        return navController.navigateUp() || super.onSupportNavigateUp()
-    }
+    // Fetch and cache user data from Firestore
+    private fun fetchAndCacheUserData(userId: String) {
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    cachedFirstName = document.getString("firstName") ?: "No Name"
+                    cachedLastName = document.getString("lastName") ?: ""
+                    cachedProfilePictureUrl = document.getString("profilePictureUrl") ?: ""
 
-    // Profile menu
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.profile_menu, menu)
-        return true
-    }
-
-    // Profile options select
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_profile -> {
-                showProfilePopup()
-                true
+                    // Update the toolbar profile image
+                    updateToolbarProfileImage()
+                }
             }
-            else -> super.onOptionsItemSelected(item)
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to load user data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // Update the toolbar profile image
+    private fun updateToolbarProfileImage() {
+        val profileImageView = findViewById<ImageView>(R.id.topBarProfileImageView)
+
+        if (cachedProfilePictureUrl?.isNotEmpty() == true) {
+            Picasso.get()
+                .load(cachedProfilePictureUrl)
+                .placeholder(R.drawable.ic_profile_placeholder)
+                .error(R.drawable.ic_profile_placeholder)
+                .into(profileImageView)
+        } else {
+            profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
         }
     }
 
@@ -107,9 +129,17 @@ class MainActivity : AppCompatActivity() {
         val profileNameTextView = popupView.findViewById<TextView>(R.id.profileNameTextView)
         val logoutButton = popupView.findViewById<Button>(R.id.logoutButton)
 
-        // Set the user's profile picture and name (replace with actual user data)
-        profileImageView.setImageResource(R.drawable.ic_profile_placeholder) // Replace with actual image loading logic
-        profileNameTextView.text = auth.currentUser?.displayName ?: "User Name"
+        // Use cached data to populate the popup
+        profileNameTextView.text = "${cachedFirstName ?: "No Name"} ${cachedLastName ?: ""}"
+        if (cachedProfilePictureUrl?.isNotEmpty() == true) {
+            Picasso.get()
+                .load(cachedProfilePictureUrl)
+                .placeholder(R.drawable.ic_profile_placeholder)
+                .error(R.drawable.ic_profile_placeholder)
+                .into(profileImageView)
+        } else {
+            profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
+        }
 
         // Handle "Logout" button click
         logoutButton.setOnClickListener {
@@ -119,6 +149,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Show the popup anchored to the profile menu item
-        popupWindow.showAsDropDown(findViewById(R.id.action_profile), 0, 0)
+        popupWindow.showAsDropDown(findViewById(R.id.topBarProfileImageView), 0, 0)
     }
 }
