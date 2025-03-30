@@ -65,10 +65,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Fetch a single post by ID
-    fun fetchPostById(postId: String) {
+    fun fetchPostById(id: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val post = postDao.getPostById(postId)
+                val post = postDao.getPostById(id)
                 _currentPost.postValue(post)
             } catch (e: Exception) {
                 Log.e("PostViewModel", "Error fetching post by ID: ${e.message}")

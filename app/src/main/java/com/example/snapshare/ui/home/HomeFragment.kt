@@ -4,12 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.snapshare.adapter.PostAdapter
 import com.example.snapshare.R
+import com.example.snapshare.adapter.PostAdapter
 import com.example.snapshare.data.model.Post
 import com.example.snapshare.databinding.FragmentHomeBinding
 import com.example.snapshare.viewmodel.PostViewModel
@@ -38,7 +39,28 @@ class HomeFragment : Fragment() {
         postViewModel = ViewModelProvider(this)[PostViewModel::class.java]
 
         // Initialize RecyclerView
-        postAdapter = PostAdapter(posts)
+        postAdapter = PostAdapter(
+            posts = posts,
+            onEditPost = { post ->
+                // Navigate to EditPostFragment with the post ID
+                val bundle = Bundle().apply {
+                    putString("id", post.id) // Pass the "id" argument
+                }
+                findNavController().navigate(R.id.action_homeFragment_to_editPostFragment, bundle)
+            },
+            onDeletePost = { post ->
+                // Handle post deletion
+                postViewModel.deletePost(post).observe(viewLifecycleOwner) { success ->
+                    if (success) {
+                        Toast.makeText(requireContext(), "Post deleted successfully!", Toast.LENGTH_SHORT).show()
+                        loadPosts() // Refresh the posts
+                    } else {
+                        Toast.makeText(requireContext(), "Failed to delete post.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        )
+
         binding.recyclerViewPosts.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = postAdapter

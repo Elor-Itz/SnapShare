@@ -2,33 +2,20 @@ package com.example.snapshare.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.example.snapshare.R
 import com.example.snapshare.data.model.Post
 import com.example.snapshare.databinding.ItemPostBinding
 import com.squareup.picasso.Picasso
 
-class PostAdapter(private val posts: List<Post>) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+class PostAdapter(
+    private val posts: List<Post>,
+    private val onEditPost: (Post) -> Unit,
+    private val onDeletePost: (Post) -> Unit
+) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
-    // ViewHolder class using ViewBinding
-    class PostViewHolder(private val binding: ItemPostBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(post: Post) {
-            // Set the title and content
-            binding.tvTitle.text = post.title
-            binding.tvContent.text = post.content
-
-            // Load the image using Picasso
-            if (!post.imageUrl.isNullOrEmpty()) {
-                Picasso.get()
-                    .load(post.imageUrl) // Load the image URL
-                    .placeholder(com.example.snapshare.R.drawable.ic_image_placeholder) // Placeholder image
-                    .error(com.example.snapshare.R.drawable.ic_image_placeholder) // Error image
-                    .into(binding.ivPostImage) // Target ImageView
-            } else {
-                // Set a placeholder if the image URL is empty or null
-                binding.ivPostImage.setImageResource(com.example.snapshare.R.drawable.ic_image_placeholder)
-            }
-        }
-    }
+    inner class PostViewHolder(val binding: ItemPostBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val binding = ItemPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -36,7 +23,38 @@ class PostAdapter(private val posts: List<Post>) : RecyclerView.Adapter<PostAdap
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        holder.bind(posts[position])
+        val post = posts[position]
+        with(holder.binding) {
+            tvTitle.text = post.title
+            tvContent.text = post.content
+
+            // Load the post image
+            if (!post.imageUrl.isNullOrEmpty()) {
+                Picasso.get().load(post.imageUrl).into(ivPostImage)
+            } else {
+                ivPostImage.setImageResource(R.drawable.ic_image_placeholder)
+            }
+
+            // Handle menu button click
+            btnPostMenu.setOnClickListener {
+                val popupMenu = PopupMenu(it.context, it)
+                popupMenu.inflate(R.menu.post_menu) // Create a menu resource file for this
+                popupMenu.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_edit -> {
+                            onEditPost(post) // Trigger the edit callback
+                            true
+                        }
+                        R.id.action_delete -> {
+                            onDeletePost(post) // Trigger the delete callback
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                popupMenu.show()
+            }
+        }
     }
 
     override fun getItemCount(): Int = posts.size

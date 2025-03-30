@@ -68,7 +68,7 @@
         android:label="Edit Post"
         tools:layout="@layout/fragment_edit_post">
         <argument
-            android:name="postId"
+            android:name="id"
             app:argType="string" />
         <action
             android:id="@+id/action_editPostFragment_to_homeFragment"
