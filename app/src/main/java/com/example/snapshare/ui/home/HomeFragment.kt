@@ -111,16 +111,5 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null // Avoid memory leaks
-    }
-
-    recyclerViewPosts.addItemDecoration(object : RecyclerView.ItemDecoration() {
-    override fun getItemOffsets(
-        outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
-    ) {
-        // Add extra space only at the bottom of the last item
-        if (parent.getChildAdapterPosition(view) == state.itemCount - 1) {
-            outRect.bottom = 100 // Adjust the value as needed
-        }
-    }
-})
+    }    
 }
