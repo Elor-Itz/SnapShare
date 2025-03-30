@@ -68,6 +68,38 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Get user by ID
+    fun getUserById(userId: String): LiveData<User?> {
+        val userLiveData = MutableLiveData<User?>()
+
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val data = document.data
+                    if (data != null) {
+                        val user = User(
+                            uid = userId,
+                            firstName = data["firstName"] as? String ?: "",
+                            lastName = data["lastName"] as? String ?: "",
+                            email = data["email"] as? String ?: "",
+                            profilePictureUrl = data["profilePictureUrl"] as? String
+                        )
+                        userLiveData.postValue(user)
+                    } else {
+                        userLiveData.postValue(null)
+                    }
+                } else {
+                    userLiveData.postValue(null)
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("UserViewModel", "Error fetching user by ID: ${exception.message}")
+                userLiveData.postValue(null)
+            }
+
+        return userLiveData
+    }
+
     // Save user to local database
     private fun saveUserToLocalDatabase(user: User) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -81,7 +113,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Update user profile
-    fun updateUserProfile(firstName: String, lastName: String): LiveData<Boolean> {
+    fun updateUserProfile(firstName: String, lastName: String, imageUrl: String?): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         val currentUserId = auth.currentUser?.uid
 
@@ -92,17 +124,26 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                val updates = mapOf(
+                val updates = mutableMapOf<String, Any>(
                     "firstName" to firstName,
                     "lastName" to lastName
                 )
+
+                // Add imageUrl to updates if it's not null
+                if (!imageUrl.isNullOrEmpty()) {
+                    updates["profilePictureUrl"] = imageUrl
+                }
 
                 // Update Firestore
                 firestore.collection("users").document(currentUserId).update(updates).await()
 
                 // Update Local Database
                 withContext(Dispatchers.IO) {
-                    val updatedUser = _currentUser.value?.copy(firstName = firstName, lastName = lastName)
+                    val updatedUser = _currentUser.value?.copy(
+                        firstName = firstName,
+                        lastName = lastName,
+                        profilePictureUrl = imageUrl ?: _currentUser.value?.profilePictureUrl
+                    )
                     if (updatedUser != null) {
                         userDao.insertUser(updatedUser)
                         _currentUser.postValue(updatedUser)

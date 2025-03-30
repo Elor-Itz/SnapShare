@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.snapshare.data.model.User
 import com.example.snapshare.data.model.Post
 
-@Database(entities = [User::class, Post::class], version = 2, exportSchema = false)
+@Database(entities = [User::class, Post::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun postDao(): PostDao
@@ -22,7 +22,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "snapshare_database"
-                ).build()
+                ).fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }
