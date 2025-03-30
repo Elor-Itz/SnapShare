@@ -10,6 +10,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.snapshare.R
 import com.example.snapshare.databinding.FragmentEditProfileBinding
+import com.example.snapshare.utils.MenuUtils.hideMenus
+import com.example.snapshare.utils.MenuUtils.showMenus
 import com.example.snapshare.viewmodel.UserViewModel
 import com.squareup.picasso.Picasso
 
@@ -80,19 +82,5 @@ class EditProfileFragment : Fragment() {
         // Restore the top and bottom menus
         showMenus()
         _binding = null
-    }
-
-    private fun hideMenus() {
-        // Hide the Toolbar
-        requireActivity().findViewById<View>(R.id.toolbar)?.visibility = View.GONE
-        // Hide the BottomNavigationView
-        requireActivity().findViewById<View>(R.id.bottomNavigation)?.visibility = View.GONE
-    }
-
-    private fun showMenus() {
-        // Show the Toolbar
-        requireActivity().findViewById<View>(R.id.toolbar)?.visibility = View.VISIBLE
-        // Show the BottomNavigationView
-        requireActivity().findViewById<View>(R.id.bottomNavigation)?.visibility = View.VISIBLE
-    }
+    }    
 }

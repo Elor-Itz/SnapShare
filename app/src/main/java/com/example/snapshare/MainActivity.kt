@@ -13,10 +13,10 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.snapshare.databinding.ActivityMainBinding
+import com.example.snapshare.viewmodel.UserViewModel
 import com.example.snapshare.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.squareup.picasso.Picasso
-import com.example.snapshare.viewmodel.UserViewModel
 
 class MainActivity : AppCompatActivity() {
 

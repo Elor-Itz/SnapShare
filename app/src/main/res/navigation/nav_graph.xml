@@ -53,7 +53,7 @@
     <!-- Create Post Fragment -->
     <fragment
         android:id="@+id/createPostFragment"
-        android:name="com.example.snapshare.ui.fragments.CreatePostFragment"
+        android:name="com.example.snapshare.ui.posts.CreatePostFragment"
         android:label="Create Post"
         tools:layout="@layout/fragment_create_post">
         <action
@@ -64,7 +64,7 @@
     <!-- Edit Post Fragment -->
     <fragment
         android:id="@+id/editPostFragment"
-        android:name="com.example.snapshare.ui.fragments.EditPostFragment"
+        android:name="com.example.snapshare.ui.posts.EditPostFragment"
         android:label="Edit Post"
         tools:layout="@layout/fragment_edit_post">
         <argument
