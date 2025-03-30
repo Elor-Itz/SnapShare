@@ -81,7 +81,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Update user profile
-    fun updateUserProfile(firstName: String, lastName: String): LiveData<Boolean> {
+    fun updateUserProfile(firstName: String, lastName: String, imageUrl: String?): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         val currentUserId = auth.currentUser?.uid
 
@@ -92,17 +92,26 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                val updates = mapOf(
+                val updates = mutableMapOf<String, Any>(
                     "firstName" to firstName,
                     "lastName" to lastName
                 )
+
+                // Add imageUrl to updates if it's not null
+                if (!imageUrl.isNullOrEmpty()) {
+                    updates["profilePictureUrl"] = imageUrl
+                }
 
                 // Update Firestore
                 firestore.collection("users").document(currentUserId).update(updates).await()
 
                 // Update Local Database
                 withContext(Dispatchers.IO) {
-                    val updatedUser = _currentUser.value?.copy(firstName = firstName, lastName = lastName)
+                    val updatedUser = _currentUser.value?.copy(
+                        firstName = firstName,
+                        lastName = lastName,
+                        profilePictureUrl = imageUrl ?: _currentUser.value?.profilePictureUrl
+                    )
                     if (updatedUser != null) {
                         userDao.insertUser(updatedUser)
                         _currentUser.postValue(updatedUser)
