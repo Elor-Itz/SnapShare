@@ -4,16 +4,24 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.snapshare.data.model.User
+import androidx.room.Update
+import androidx.room.Delete
+import com.example.snapshare.data.model.Post
 
 @Dao
-interface UserDao {
+interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertUser(user: User)
+    fun insertPost(post: Post)
 
-    @Query("SELECT * FROM users WHERE uid = :userId")
-    fun getUserById(userId: String): User?
+    @Update
+    fun updatePost(post: Post)
 
-    @Query("SELECT * FROM users")
-    fun getAllUsers(): List<User>
+    @Delete
+    fun deletePost(post: Post)
+
+    @Query("SELECT * FROM posts WHERE postId = :postId")
+    fun getPostById(postId: String): Post?
+
+    @Query("SELECT * FROM posts")
+    fun getAllPosts(): List<Post>
 }
