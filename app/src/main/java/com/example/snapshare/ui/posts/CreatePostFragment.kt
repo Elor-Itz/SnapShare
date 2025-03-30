@@ -18,7 +18,8 @@ import com.example.snapshare.utils.CloudinaryUploader
 import com.example.snapshare.utils.MenuUtils.hideMenus
 import com.example.snapshare.utils.MenuUtils.showMenus
 import com.example.snapshare.viewmodel.PostViewModel
-import com.example.snapshare.data.model.Post
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -127,28 +128,36 @@ class CreatePostFragment : Fragment() {
     }
 
     // Save post
+    // Save post
     private fun savePost(title: String, content: String, imageUrl: String?) {
-        val userId = "currentUserId" // Replace with the actual user ID from FirebaseAuth or your app logic
-        val postId = "" // Firestore will generate the ID
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (currentUserId == null) {
+            Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val timestamp = System.currentTimeMillis() // Use the current system time
 
-        val post = Post(
-            id = postId,
-            userId = userId,
-            title = title,
-            content = content,
-            imageUrl = imageUrl,
-            timestamp = timestamp
+        // Create a map for the post data
+        val postData = mapOf(
+            "userId" to currentUserId, // Use the authenticated user's UID
+            "title" to title,
+            "content" to content,
+            "imageUrl" to imageUrl,
+            "timestamp" to timestamp
         )
 
-        postViewModel.insertPost(post).observe(viewLifecycleOwner) { success ->
-            if (success) {
+        // Save the post to Firestore
+        FirebaseFirestore.getInstance().collection("posts")
+            .add(postData) // Firestore generates the ID automatically
+            .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Post created successfully!", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_createPostFragment_to_homeFragment)
-            } else {
-                Toast.makeText(requireContext(), "Failed to create post.", Toast.LENGTH_SHORT).show()
             }
-        }
+            .addOnFailureListener { exception ->
+                Toast.makeText(requireContext(), "Failed to create post: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     override fun onDestroyView() {

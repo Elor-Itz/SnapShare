@@ -6,14 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.snapshare.R
 import com.example.snapshare.adapter.PostAdapter
 import com.example.snapshare.data.model.Post
+import com.example.snapshare.data.model.User
 import com.example.snapshare.databinding.FragmentHomeBinding
 import com.example.snapshare.viewmodel.PostViewModel
+import com.example.snapshare.viewmodel.UserViewModel
 
 class HomeFragment : Fragment() {
 
@@ -23,6 +26,7 @@ class HomeFragment : Fragment() {
     private lateinit var postAdapter: PostAdapter
     private val posts = mutableListOf<Post>()
     private lateinit var postViewModel: PostViewModel
+    private lateinit var userViewModel: UserViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,16 +39,23 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize ViewModel
+        // Initialize ViewModels
         postViewModel = ViewModelProvider(this)[PostViewModel::class.java]
+        userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
 
-        // Initialize RecyclerView
+        // Define the getUserById function using UserViewModel
+        val getUserById: (String) -> LiveData<User?> = { userId ->
+            userViewModel.getUserById(userId)
+        }
+
+        // Initialize the adapter
         postAdapter = PostAdapter(
             posts = posts,
+            getUserById = getUserById, // Pass the getUserById function
             onEditPost = { post ->
                 // Navigate to EditPostFragment with the post ID
                 val bundle = Bundle().apply {
-                    putString("id", post.id) // Pass the "id" argument
+                    putString("id", post.id)
                 }
                 findNavController().navigate(R.id.action_homeFragment_to_editPostFragment, bundle)
             },
@@ -61,6 +72,7 @@ class HomeFragment : Fragment() {
             }
         )
 
+        // Set up RecyclerView
         binding.recyclerViewPosts.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = postAdapter
@@ -100,4 +112,15 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null // Avoid memory leaks
     }
+
+    recyclerViewPosts.addItemDecoration(object : RecyclerView.ItemDecoration() {
+    override fun getItemOffsets(
+        outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
+    ) {
+        // Add extra space only at the bottom of the last item
+        if (parent.getChildAdapterPosition(view) == state.itemCount - 1) {
+            outRect.bottom = 100 // Adjust the value as needed
+        }
+    }
+})
 }

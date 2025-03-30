@@ -68,6 +68,38 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Get user by ID
+    fun getUserById(userId: String): LiveData<User?> {
+        val userLiveData = MutableLiveData<User?>()
+
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val data = document.data
+                    if (data != null) {
+                        val user = User(
+                            uid = userId,
+                            firstName = data["firstName"] as? String ?: "",
+                            lastName = data["lastName"] as? String ?: "",
+                            email = data["email"] as? String ?: "",
+                            profilePictureUrl = data["profilePictureUrl"] as? String
+                        )
+                        userLiveData.postValue(user)
+                    } else {
+                        userLiveData.postValue(null)
+                    }
+                } else {
+                    userLiveData.postValue(null)
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("UserViewModel", "Error fetching user by ID: ${exception.message}")
+                userLiveData.postValue(null)
+            }
+
+        return userLiveData
+    }
+
     // Save user to local database
     private fun saveUserToLocalDatabase(user: User) {
         viewModelScope.launch(Dispatchers.IO) {

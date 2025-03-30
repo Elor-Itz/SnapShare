@@ -7,6 +7,42 @@
     android:background="@android:color/white"
     android:elevation="4dp">
 
+    <!-- Layout for poster's image and name -->
+    <LinearLayout
+        android:id="@+id/layoutPosterInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="8dp">
+
+        <!-- Poster profile image -->
+        <ImageView
+            android:id="@+id/ivPosterImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="Poster Image"
+            android:src="@drawable/ic_profile_placeholder"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/circle_background"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Poster name -->
+        <TextView
+            android:id="@+id/tvPosterName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Poster Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:ellipsize="end"
+            android:maxLines="1" />
+    </LinearLayout>
+
     <!-- ImageView for the post image -->
     <ImageView
         android:id="@+id/ivPostImage"
@@ -14,7 +50,7 @@
         android:layout_height="200dp"
         android:scaleType="centerCrop"
         android:contentDescription="Post Image"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutPosterInfo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -47,6 +83,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="4dp" />
 
+    <!-- Button for the post menu -->
     <ImageButton
         android:id="@+id/btnPostMenu"
         android:layout_width="32dp"
