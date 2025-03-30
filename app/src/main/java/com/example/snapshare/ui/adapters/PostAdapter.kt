@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.snapshare.data.model.Post
 import com.example.snapshare.databinding.ItemPostBinding
+import com.squareup.picasso.Picasso
 
 class PostAdapter(private val onPostClick: (Post) -> Unit) :
     ListAdapter<Post, PostAdapter.PostViewHolder>(PostDiffCallback()) {
@@ -27,6 +28,17 @@ class PostAdapter(private val onPostClick: (Post) -> Unit) :
         fun bind(post: Post) {
             binding.tvTitle.text = post.title
             binding.tvContent.text = post.content
+
+            // Use Picasso to load the image into the ImageView
+            if (!post.imageUrl.isNullOrEmpty()) {
+                Picasso.get()
+                    .load(post.imageUrl)
+                    .placeholder(android.R.drawable.ic_menu_gallery) // Placeholder image
+                    .error(android.R.drawable.ic_menu_close_clear_cancel) // Error image
+                    .into(binding.ivPostImage)
+            } else {
+                binding.ivPostImage.setImageResource(android.R.drawable.ic_menu_gallery) // Default image
+            }
         }
     }
 
