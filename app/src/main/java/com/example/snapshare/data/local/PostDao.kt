@@ -13,13 +13,16 @@ interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPost(post: Post)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertPosts(posts: List<Post>)
+
     @Update
     fun updatePost(post: Post)
 
     @Delete
     fun deletePost(post: Post)
 
-    @Query("SELECT * FROM posts WHERE postId = :postId")
+    @Query("SELECT * FROM posts WHERE id = :postId")
     fun getPostById(postId: String): Post?
 
     @Query("SELECT * FROM posts")

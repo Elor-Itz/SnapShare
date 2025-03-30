@@ -5,17 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.snapshare.adapter.PostAdapter
 import com.example.snapshare.R
-import com.example.snapshare.data.local.AppDatabase
 import com.example.snapshare.data.model.Post
 import com.example.snapshare.databinding.FragmentHomeBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.snapshare.viewmodel.PostViewModel
 
 class HomeFragment : Fragment() {
 
@@ -24,18 +21,21 @@ class HomeFragment : Fragment() {
 
     private lateinit var postAdapter: PostAdapter
     private val posts = mutableListOf<Post>()
+    private lateinit var postViewModel: PostViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout using ViewBinding
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize ViewModel
+        postViewModel = ViewModelProvider(this)[PostViewModel::class.java]
 
         // Initialize RecyclerView
         postAdapter = PostAdapter(posts)
@@ -44,8 +44,24 @@ class HomeFragment : Fragment() {
             adapter = postAdapter
         }
 
-        // Load posts from the database
-        loadPostsFromDatabase()
+        // Observe posts LiveData from ViewModel
+        postViewModel.allPosts.observe(viewLifecycleOwner) { fetchedPosts ->
+            posts.clear()
+            if (fetchedPosts.isEmpty()) {
+                // Show "No posts available" message
+                binding.tvNoPosts.visibility = View.VISIBLE
+                binding.recyclerViewPosts.visibility = View.GONE
+            } else {
+                // Show posts in RecyclerView
+                binding.tvNoPosts.visibility = View.GONE
+                binding.recyclerViewPosts.visibility = View.VISIBLE
+                posts.addAll(fetchedPosts)
+                postAdapter.notifyDataSetChanged()
+            }
+        }
+
+        // Load posts from Firestore and cache them in the local database
+        loadPosts()
 
         // Set up Floating Action Button to navigate to CreatePostFragment
         binding.fabAddPost.setOnClickListener {
@@ -53,18 +69,9 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun loadPostsFromDatabase() {
-        // Use a coroutine to fetch posts from the database
-        CoroutineScope(Dispatchers.IO).launch {
-            val postDao = AppDatabase.getDatabase(requireContext()).postDao()
-            val fetchedPosts = postDao.getAllPosts() // Fetch posts from the database
-
-            withContext(Dispatchers.Main) {
-                posts.clear()
-                posts.addAll(fetchedPosts)
-                postAdapter.notifyDataSetChanged() // Notify the adapter of data changes
-            }
-        }
+    private fun loadPosts() {
+        // Fetch posts from Firestore and cache them in the local database
+        postViewModel.fetchPostsFromFirestore()
     }
 
     override fun onDestroyView() {

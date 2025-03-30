@@ -5,8 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "posts")
 data class Post(
-    @PrimaryKey val postId: String,
-    val userId: String, // user's ID who created the post
+    @PrimaryKey val id: String,
+    val userId: String,
     val title: String,
     val content: String,
     val imageUrl: String? = null,
