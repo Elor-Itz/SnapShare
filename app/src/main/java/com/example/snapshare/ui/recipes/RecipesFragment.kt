@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.snapshare.databinding.FragmentRecipesBinding
 import com.example.snapshare.viewmodel.MealViewModel
+import com.example.snapshare.ui.adapters.Meal-Adapter
 
 class RecipesFragment : Fragment() {
     private var _binding: FragmentRecipesBinding? = null
